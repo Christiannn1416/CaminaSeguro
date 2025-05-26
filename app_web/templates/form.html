@@ -1,0 +1,207 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reportar Incidente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <!-- Leaflet Routing Machine CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+    />
+
+    <style>
+      #map {
+        height: 80vh;
+      }
+    </style>
+  </head>
+  <form
+    action="/reportar-incidente"
+    method="POST"
+    class="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-md space-y-4"
+  >
+    <h2 class="text-2xl font-bold text-center text-gray-700">
+      Reportar Incidente
+    </h2>
+
+    <!-- Tipo de delito -->
+    <div>
+      <label for="tipo_delito" class="block text-sm font-medium text-gray-700"
+        >Tipo de delito</label
+      >
+      <select
+        name="tipo_delito"
+        id="tipo_delito"
+        class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+      >
+        <!-- Opciones se insertarán desde el backend -->
+      </select>
+    </div>
+
+    <!-- Selector de colonia -->
+    <select
+      name="colonia"
+      id="colonia"
+      class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+    >
+      <option value="">Selecciona una colonia</option>
+    </select>
+
+    <!-- Selector de calle -->
+    <select
+      name="calle"
+      id="calle"
+      class="mt-4 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+    >
+      <option value="">Selecciona una calle</option>
+    </select>
+    <input type="hidden" name="lat" id="lat" />
+    <input type="hidden" name="lng" id="lng" />
+
+    <!-- Forma de acción -->
+    <div>
+      <label for="forma_accion" class="block text-sm font-medium text-gray-700"
+        >Forma de acción</label
+      >
+      <select
+        name="forma_accion"
+        id="forma_accion"
+        class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+      >
+        <!-- Opciones desde el backend -->
+      </select>
+    </div>
+
+    <!-- Fecha y hora -->
+    <div>
+      <label for="fecha_hora" class="block text-sm font-medium text-gray-700"
+        >Fecha y hora del incidente</label
+      >
+      <input
+        type="datetime-local"
+        name="fecha_hora"
+        id="fecha_hora"
+        class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+        required
+      />
+    </div>
+
+    <!-- Botón -->
+    <div class="text-center">
+      <button
+        type="submit"
+        class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition-all"
+      >
+        Enviar reporte
+      </button>
+    </div>
+  </form>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("/api/tipos_delito")
+        .then((res) => res.json())
+        .then((data) => {
+          const select = document.getElementById("tipo_delito");
+          data.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.tipo_delito;
+            option.textContent = item.tipo_delito;
+            select.appendChild(option);
+          });
+        })
+        .catch((error) => {
+          console.error("Error al cargar tipos de delito:", error);
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("/api/forma_accion")
+        .then((res) => res.json())
+        .then((data) => {
+          const select = document.getElementById("forma_accion");
+          data.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.forma_accion;
+            option.textContent = item.forma_accion;
+            select.appendChild(option);
+          });
+        })
+        .catch((error) => {
+          console.error("Error al cargar formas de acción:", error);
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const coloniaSelect = document.getElementById("colonia");
+      const calleSelect = document.getElementById("calle");
+
+      // Cargar colonias al inicio
+      fetch("/api/colonias_form")
+        .then((res) => res.json())
+        .then((data) => {
+          data.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.colonia;
+            option.textContent = item.colonia;
+            coloniaSelect.appendChild(option);
+          });
+        });
+
+      // Cargar calles cuando se seleccione una colonia
+      coloniaSelect.addEventListener("change", () => {
+        const colonia = coloniaSelect.value;
+        calleSelect.innerHTML =
+          '<option value="">Selecciona una calle</option>'; // limpiar
+
+        if (colonia) {
+          fetch(`/api/calles/${encodeURIComponent(colonia)}`)
+            .then((res) => res.json())
+            .then((data) => {
+              data.forEach((item) => {
+                const option = document.createElement("option");
+                option.value = item.calle;
+                option.textContent = item.calle;
+                calleSelect.appendChild(option);
+              });
+            });
+        }
+      });
+    });
+
+    // Al seleccionar una calle, obtener las coordenadas
+    calleSelect.addEventListener("change", () => {
+      const colonia = coloniaSelect.value;
+      const calle = calleSelect.value;
+
+      if (colonia && calle) {
+        fetch("/api/coordenadas", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ colonia, calle }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // Rellenar los inputs ocultos
+            document.getElementById("lat").value = data.coordinates[1];
+            document.getElementById("lng").value = data.coordinates[0];
+          })
+          .catch((err) => {
+            console.error("Error obteniendo coordenadas:", err);
+          });
+      }
+    });
+  </script>
+</html>
