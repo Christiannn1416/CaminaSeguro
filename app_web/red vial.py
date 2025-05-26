@@ -1,10 +1,7 @@
 import osmnx as ox
 
-# Descargar la red vial de Celaya, Guanajuato, México (
-G = ox.graph_from_place("Celaya, Guanajuato, Mexico", network_type='bike')
+# Cargar el grafo desde un archivo .graphml existente
+G = ox.load_graphml("bike_celaya.graphml")
 
-# Guardar el grafo en un archivo .graphml para usarlo más tarde
-ox.save_graphml(G, "bike_celaya.graphml")
-
-# visualizar la red vial con:
+# Visualizar la red vial
 ox.plot_graph(G)

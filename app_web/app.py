@@ -63,7 +63,7 @@ def get_colonias():
             {"$match": {"total": {"$gt": 0}}}
         ]
 
-        resultados = list(db.delitos_prueba.aggregate(pipeline))
+        resultados = list(db.delitos.aggregate(pipeline))
 
         return jsonify({
             "status": "success",
