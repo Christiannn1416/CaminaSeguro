@@ -129,6 +129,10 @@
             </li>
           </ul>
         </div>
+        <div
+          id="alerta-ruta"
+          style="margin-top: 10px; font-weight: bold; color: rgb(255, 0, 0)"
+        ></div>
       </div>
 
       <!-- Mapa -->
@@ -367,7 +371,6 @@
       async function trazarRuta(modo) {
         const origenInput = document.getElementById("origen");
         const destinoInput = document.getElementById("destino");
-
         const lat1 = origenInput.dataset.lat;
         const lon1 = origenInput.dataset.lon;
         const lat2 = destinoInput.dataset.lat;
@@ -397,6 +400,17 @@
           if (data.error) {
             alert("Error al obtener la ruta: " + data.error);
             return;
+          }
+
+          // Mostrar alerta si hay zonas peligrosas
+          const alerta = data.properties.alerta;
+          const alertaDiv = document.getElementById("alerta-ruta");
+          if (alerta) {
+            alertaDiv.innerText = alerta;
+            alertaDiv.style.display = "block";
+          } else {
+            alertaDiv.innerText = "Ruta sin zonas peligrosas detectadas.";
+            alertaDiv.style.display = "block";
           }
 
           // Dibujar la nueva ruta

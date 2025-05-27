@@ -10,6 +10,11 @@ app = Flask(__name__)
 client = MongoClient("mongodb+srv://caminaseguro:bWbTAwKWxEFzgfQt@cluster0.oawj7sa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client.caminaseguro
 
+incidentes = db["delitos_formateados"]
+colonias = db["colonias_calles"]
+tipos_delito = db["tipos_delito"]
+forma_accion = db["forma_accion"]
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -139,11 +144,6 @@ def get_calles():
             "status": "error",
             "message": "Error al procesar la solicitud"
         }), 500
-
-incidentes = db["delitos_formateados"]
-colonias = db["colonias_calles"]
-tipos_delito = db["tipos_delito"]
-forma_accion = db["forma_accion"]
 
 
 
