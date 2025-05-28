@@ -212,6 +212,7 @@ def formatear_fecha(fecha):
         return fecha_dt.strftime("%Y-%m-%d %H:%M:%S")
     except Exception:
         return None  # Si no es válido
+
 @app.route("/reportar-incidente", methods=["POST"])
 def reportar_incidente():
     datos = {
@@ -219,10 +220,7 @@ def reportar_incidente():
         "colonia": request.form["colonia"],
         "calle": request.form["calle"],
         "forma_accion": request.form["forma_accion"],
-        "fecha_completa": formatear_fecha(["fecha_completa"]),
-        "anio": int(request.form["fecha_hora"][:4]),
-        "mes_nombre": datetime.strptime(request.form["fecha_hora"], "%Y-%m-%dT%H:%M").strftime("%B").upper(),
-        "dia": int(request.form["fecha_hora"][8:10]),
+        "fecha_completa": formatear_fecha(request.form["fecha_hora"]),
         "municipio": "CELAYA",
         "ubicacion": {
             "type": "Point",
@@ -236,8 +234,7 @@ def reportar_incidente():
     incidentes.insert_one(datos)
     ultimo = incidentes.find_one(sort=[("_id", -1)])
     print(ultimo)
-    return "Incidente reportado correctamente"
-
+    return "Gracias, Incidente reportado correctamente"
 
 
 if __name__ == '__main__':
