@@ -38,5 +38,3 @@ def reportar_incidente():
     incidentes.insert_one(datos)
     return "Incidente reportado correctamente"
 
-if __name__ == "__main__":
-    app.run(debug=True)
